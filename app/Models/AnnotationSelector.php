@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AnnotationItemSelector extends Model
+class AnnotationSelector extends Model
 {
     use HasFactory;
     use SoftDeletes;
@@ -17,7 +17,7 @@ class AnnotationItemSelector extends Model
      * @var array
      */
     protected $fillable = [
-        "annotation_item_id",
+        "annotation_id",
         "type",
         "value"
     ];
@@ -30,7 +30,8 @@ class AnnotationItemSelector extends Model
     protected $hidden = [
     ];
 
-    public function annotationItem() {
-        return $this->belongsTo(AnnotationItem::class);
+    public function annotations()
+    {
+        return $this->belongsTo(Annotation::class);
     }
 }

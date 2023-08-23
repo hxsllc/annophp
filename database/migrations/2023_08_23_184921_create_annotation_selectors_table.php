@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('annotation_items', function (Blueprint $table) {
+        Schema::create('annotation_selectors', function (Blueprint $table) {
             $table->id();
             $table->integer("annotation_id");
-            $table->string("body_type");
-            $table->text("body_value");
-            $table->string("item_id");
-            $table->string("motivation");
             $table->string("type");
+            $table->text("value");
             $table->timestamps();
             $table->softDeletes();
         });
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('annotation_items');
+        Schema::dropIfExists('annotation_selectors');
     }
 };

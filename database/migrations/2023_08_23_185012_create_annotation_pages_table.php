@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('annotation_item_selectors', function (Blueprint $table) {
+        Schema::create('annotation_pages', function (Blueprint $table) {
             $table->id();
-            $table->integer("annotation_item_id");
-            $table->string("type");
-            $table->text("value");
+            $table->string('canvas_id');
+            $table->string("uuid");
             $table->timestamps();
             $table->softDeletes();
         });
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('annotation_item_selectors');
+        Schema::dropIfExists('annotation_pages');
     }
 };

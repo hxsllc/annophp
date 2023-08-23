@@ -17,7 +17,11 @@ class Annotation extends Model
      * @var array
      */
     protected $fillable = [
-        "canvas_id",
+        "annotation_page_id",
+        "body_type",
+        "body_value",
+        "item_id",
+        "motivation",
         "type"
     ];
 
@@ -29,7 +33,8 @@ class Annotation extends Model
     protected $hidden = [
     ];
 
-    public function annotationItems() {
-        return $this->hasMany(AnnotationItem::class);
+    public function annotationSelectors()
+    {
+        return $this->hasMany(AnnotationSelector::class);
     }
 }

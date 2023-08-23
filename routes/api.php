@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Middleware\OwnCors;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,8 +20,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix("annotation")->group(function() {
-    Route::post("", [App\Http\Controllers\AnnotationController::class, "create"]);
-    Route::put("", [App\Http\Controllers\AnnotationController::class, "update"]);
-    Route::delete("", [App\Http\Controllers\AnnotationController::class, "delete"]);
+Route::middleware([OwnCors::class])->group(function() {
+    Route::prefix("annotations")->group(function() {
+        Route::post("", [App\Http\Controllers\AnnotationController::class, "create"]);
+        Route::put("", [App\Http\Controllers\AnnotationController::class, "update"]);
+        Route::delete("", [App\Http\Controllers\AnnotationController::class, "delete"]);
+    });
 });

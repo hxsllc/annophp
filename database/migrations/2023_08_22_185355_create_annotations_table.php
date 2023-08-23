@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('annotations', function (Blueprint $table) {
             $table->id();
-            $table->string('canvas_id');
+            $table->integer("annotation_page_id");
+            $table->string("body_type")->default("TextualBody");
+            $table->text("body_value")->nullable();
+            $table->string("item_id");
+            $table->string("motivation");
             $table->string("type");
             $table->timestamps();
             $table->softDeletes();
