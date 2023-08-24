@@ -12,9 +12,68 @@ class AnnotationController extends Controller
     //
     private $request;
 
-    public function __construct(Request $request)
-    {
+    public function __construct(Request $request) {
         $this->request = $request;
+    }
+
+    public function getAllByCanvasId()
+    {
+        // Get Params
+        $canvasId = $this->request["canvasId"];
+
+        // Annotation Object
+        $annotObj = array();
+
+        $annotPage =  AnnotationPage::where([
+            ["canvas_id", '=', $canvasId]
+        ])->first();
+
+        if ($annotPage) {
+
+            $annotObj["id"] = $annotPage->canvas_id;
+            $annotObj["items"] = array();
+            $annotObj["type"] = "AnnotationPage";
+            
+            $annotationCnt = 0;
+            $annotations = Annotation::where([
+                ["annotation_page_id", "=", $annotPage->id]
+            ])->get();
+
+            if ($annotations) {
+                foreach ($annotations as $annotation) {
+                    $annotObj["items"][$annotationCnt] = array();
+                    $annotObj["items"][$annotationCnt]["body"] = array();
+                    $annotObj["items"][$annotationCnt]["body"]["type"] = $annotation->body_type;
+                    $annotObj["items"][$annotationCnt]["body"]["value"] = $annotation->body_value;
+                    $annotObj["items"][$annotationCnt]["id"] = $annotation->item_id;
+                    $annotObj["items"][$annotationCnt]["motivation"] = $annotation->motivation;
+                    $annotObj["items"][$annotationCnt]["type"] = $annotation->type;
+                    $annotObj["items"][$annotationCnt]["target"] = array();
+    
+                    $selectors = AnnotationSelector::where([
+                        ["annotation_id", "=", $annotation->id]
+                    ])->get();
+
+                    if ($selectors) {
+                        $selectorCnt = 0;
+                        $annotObj["items"][$annotationCnt]["target"]["source"] = $annotPage->canvas_id;
+                        $annotObj["items"][$annotationCnt]["target"]["selector"] = array();
+                        foreach ($selectors as $selector) {
+                            $annotObj["items"][$annotationCnt]["target"]["selector"][$selectorCnt] = array();
+                            $annotObj["items"][$annotationCnt]["target"]["selector"][$selectorCnt]["type"] = $selector->type;
+                            $annotObj["items"][$annotationCnt]["target"]["selector"][$selectorCnt]["value"] = $selector->value;
+                            $selectorCnt ++;
+                        }
+                    }
+
+                    $annotationCnt ++;
+                }
+            }
+        }
+
+        return response()->json([
+            "annotations" => $annotObj
+        ]);
     }
 
     public function create()
@@ -68,8 +127,7 @@ class AnnotationController extends Controller
         ]);
     }
 
-    public function update()
-    {
+    public function update() {
         $annotationId = $this->request["id"];
 
         Annotation::where("id", $annotationId)->update([
@@ -77,31 +135,30 @@ class AnnotationController extends Controller
             "type" => "AnnotationPage"
         ]);
 
-        // AnnotationItem::where("annotation_id", $annotationId)->update([
-        //     "body_type" => $item["body"]["type"],
-        //     "body_value" => $item["body"]["value"],
-        //     "item_id" => $item["id"],
-        //     "motivation" => $item["motivation"],
-        //     "type" => $item["type"]
-        // ]);
+        AnnotationItem::where("annotation_id", $annotationId)->update([
+            "body_type" => $item["body"]["type"],
+            "body_value" => $item["body"]["value"],
+            "item_id" => $item["id"],
+            "motivation" => $item["motivation"],
+            "type" => $item["type"]
+        ]);
 
-        // AnnotationItemSelector::where("annotation_item_id", $annotationId)->update([
-        //     "type" => $selector["type"],
-        //     "value" => $selector["value"]
-        // ]);
+        AnnotationItemSelector::where("annotation_item_id", $annotationId)->update([
+            "type" => $selector["type"],
+            "value" => $selector["value"]
+        ]);
 
         return response()->json([
             "result" => "success"
         ]);
     }
 
-    public function delete()
-    {
+    public function delete() {
         $annotationId = $this->request["id"];
 
-        // Annotation::destroy($annotationId);
-        // AnnotationItem::where("annotation_id", $annotationId)->delete();
-        // AnnotationItemSelector::where("annotation_item_id", $annotationId)->delete();
+        Annotation::destroy($annotationId);
+        AnnotationItem::where("annotation_id", $annotationId)->delete();
+        AnnotationItemSelector::where("annotation_item_id", $annotationId)->delete();
 
         return response()->json([
             "result" => "success"

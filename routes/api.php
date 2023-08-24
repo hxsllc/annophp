@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Middleware\OwnCors;
 
+use App\Http\Controllers\AnnotationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -22,8 +24,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware([OwnCors::class])->group(function() {
     Route::prefix("annotations")->group(function() {
-        Route::post("", [App\Http\Controllers\AnnotationController::class, "create"]);
-        Route::put("", [App\Http\Controllers\AnnotationController::class, "update"]);
-        Route::delete("", [App\Http\Controllers\AnnotationController::class, "delete"]);
+        Route::post("/all", [AnnotationController::class, "getAllByCanvasId"]); 
+        Route::post("/create", [AnnotationController::class, "create"]);
+        Route::post("/update", [AnnotationController::class, "update"]);
+        Route::post("/delete", [AnnotationController::class, "delete"]);
     });
 });
