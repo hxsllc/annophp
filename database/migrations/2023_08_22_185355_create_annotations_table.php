@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('annotations', function (Blueprint $table) {
             $table->id();
             $table->integer("annotation_page_id");
-            $table->string("body_type")->default("TextualBody");
-            $table->text("body_value")->nullable();
             $table->string("item_id");
-            $table->string("motivation");
-            $table->string("type");
+            $table->string("creator_id");
+            $table->string("creator_name");
+            $table->string("creator_type")->default("person");
+            $table->string("motivation")->default("commenting");
+            $table->string("type")->default("Annotation");
             $table->timestamps();
             $table->softDeletes();
         });

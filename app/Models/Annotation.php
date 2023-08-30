@@ -18,9 +18,10 @@ class Annotation extends Model
      */
     protected $fillable = [
         "annotation_page_id",
-        "body_type",
-        "body_value",
         "item_id",
+        "creator_id",
+        "creator_name",
+        "creator_type",
         "motivation",
         "type"
     ];
@@ -36,5 +37,10 @@ class Annotation extends Model
     public function annotationSelectors()
     {
         return $this->hasMany(AnnotationSelector::class);
+    }
+
+    public function annotationBodies()
+    {
+        return $this->hasMany(AnnotationBody::class);
     }
 }
