@@ -43,4 +43,9 @@ class Annotation extends Model
     {
         return $this->hasMany(AnnotationBody::class);
     }
+
+    public function annotationCategories()
+    {
+        return $this->hasMany(AnnotationCategory::class);
+    }
 }

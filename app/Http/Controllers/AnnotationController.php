@@ -7,6 +7,7 @@ use App\Models\AnnotationPage;
 use App\Models\Annotation;
 use App\Models\AnnotationBody;
 use App\Models\AnnotationSelector;
+use App\Models\AnnotationCategory;
 
 class AnnotationController extends Controller
 {
@@ -85,6 +86,22 @@ class AnnotationController extends Controller
                         }
                     }
 
+                    // Add Categories
+                    $categories = AnnotationCategory::where([
+                        ["annotation_id", "=", $annotation->id]
+                    ])->get();
+                    $annotObj["items"][$annotationCnt]["category"] = array();
+
+                    if ($categories) {
+                        $categoryCnt = 0;
+                        foreach ($categories as $category) {
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt] = array();
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["value"] = $category->value;
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["checked"] = true;
+                            $categoryCnt++;
+                        }
+                    }
+
                     // Add Creators
                     $annotObj["items"][$annotationCnt]["creator"] = array();
                     $annotObj["items"][$annotationCnt]["creator"]["id"] = $annotation->creator_id;
@@ -142,6 +159,15 @@ class AnnotationController extends Controller
                     "purpose" => $body->purpose,
                     "type" => $body->type,
                     "value" => $body->value
+                ]);
+            }
+        }
+
+        $categories = $data->category;
+        if ($categories) {
+            foreach ($categories as $category) {
+                $annotation->annotationCategories()->create([
+                    "value" => $category->value
                 ]);
             }
         }
