@@ -85,6 +85,12 @@ class AnnotationController extends Controller
                         }
                     }
 
+                    // Add Creators
+                    $annotObj["items"][$annotationCnt]["creator"] = array();
+                    $annotObj["items"][$annotationCnt]["creator"]["id"] = $annotation->creator_id;
+                    $annotObj["items"][$annotationCnt]["creator"]["name"] = $annotation->creator_name;
+                    $annotObj["items"][$annotationCnt]["creator"]["type"] = $annotation->creator_type;
+
                     $annotationCnt++;
                 }
             }
