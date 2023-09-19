@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware([OwnCors::class])->group(function() {
     Route::prefix("annotations")->group(function() {
         Route::post("/all", [AnnotationController::class, "getAllByCanvasId"]); 
+        Route::post("/get_by_categories", [AnnotationController::class, "getByCategories"]); 
         Route::post("/create", [AnnotationController::class, "create"]);
         Route::post("/update", [AnnotationController::class, "update"]);
         Route::post("/delete", [AnnotationController::class, "delete"]);

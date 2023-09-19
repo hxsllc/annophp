@@ -13,10 +13,12 @@ class AnnotationController extends Controller
 {
     //
     private $request;
+    private $CATEGORY_SPLITER;
 
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->CATEGORY_SPLITER = "@@@@@";
     }
 
     public function getAllByCanvasId()
@@ -26,11 +28,11 @@ class AnnotationController extends Controller
 
         // Annotation Object
         $annotObj = array();
-
         $annotPage = AnnotationPage::where([
             ["canvas_id", '=', $canvasId]
         ])->first();
 
+        // Insert values to annotation object.
         $annotObj["items"] = array();
         $annotObj["type"] = "AnnotationPage";
         if ($annotPage) {
@@ -87,16 +89,124 @@ class AnnotationController extends Controller
                     }
 
                     // Add Categories
-                    $categories = AnnotationCategory::where([
-                        ["annotation_id", "=", $annotation->id]
-                    ])->get();
-                    $annotObj["items"][$annotationCnt]["category"] = array();
-
+                    $categories = explode($this->CATEGORY_SPLITER, $annotation->categories);
                     if ($categories) {
                         $categoryCnt = 0;
                         foreach ($categories as $category) {
                             $annotObj["items"][$annotationCnt]["category"][$categoryCnt] = array();
-                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["value"] = $category->value;
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["value"] = $category;
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["checked"] = true;
+                            $categoryCnt++;
+                        }
+                    }
+
+                    // Add Creators
+                    $annotObj["items"][$annotationCnt]["creator"] = array();
+                    $annotObj["items"][$annotationCnt]["creator"]["id"] = $annotation->creator_id;
+                    $annotObj["items"][$annotationCnt]["creator"]["name"] = $annotation->creator_name;
+                    $annotObj["items"][$annotationCnt]["creator"]["type"] = $annotation->creator_type;
+
+                    $annotationCnt++;
+                }
+            }
+        }
+
+        return response()->json([
+            "annotations" => $annotObj
+        ]);
+    }
+
+    public function getByCategories()
+    {
+        $canvasId = $this->request["canvasId"];
+        $categories = $this->request["categories"];
+
+        // Annotation Object
+        $annotObj = array();
+        $annotPage = AnnotationPage::where([
+            ["canvas_id", '=', $canvasId]
+        ])->first();
+
+        // Insert values to annotation object.
+        $annotObj["items"] = array();
+        $annotObj["type"] = "AnnotationPage";
+        if ($annotPage) {
+            $annotObj["id"] = $annotPage->canvas_id;
+            $annotations = array();
+
+            foreach ($categories as $category) {
+                if ($category["checked"] == false)
+                    continue;
+
+                $newAnnots = Annotation::where([
+                    ["annotation_page_id", "=", $annotPage->id],
+                    ["categories", "like", "%" . $category["value"] . "%"]
+                ])->get();
+
+                foreach ($newAnnots as $newAnnot) {
+                    $isExist = false;
+                    foreach ($annotations as $annotation) {
+                        if ($annotation->id == $newAnnot->id) {
+                            $isExist = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isExist)
+                        array_push($annotations, $newAnnot);
+                }
+            }
+
+            if ($annotations) {
+                $annotationCnt = 0;
+
+                foreach ($annotations as $annotation) {
+                    $annotObj["items"][$annotationCnt] = array();
+                    $annotObj["items"][$annotationCnt]["id"] = $annotation->item_id;
+                    $annotObj["items"][$annotationCnt]["motivation"] = $annotation->motivation;
+                    $annotObj["items"][$annotationCnt]["type"] = $annotation->type;
+                    $annotObj["items"][$annotationCnt]["target"] = array();
+
+                    // Add selectors
+                    $selectors = AnnotationSelector::where([
+                        ["annotation_id", "=", $annotation->id]
+                    ])->get();
+                    if ($selectors) {
+                        $selectorCnt = 0;
+                        $annotObj["items"][$annotationCnt]["target"]["source"] = $annotPage->canvas_id;
+                        $annotObj["items"][$annotationCnt]["target"]["selector"] = array();
+                        foreach ($selectors as $selector) {
+                            $annotObj["items"][$annotationCnt]["target"]["selector"][$selectorCnt] = array();
+                            $annotObj["items"][$annotationCnt]["target"]["selector"][$selectorCnt]["type"] = $selector->type;
+                            $annotObj["items"][$annotationCnt]["target"]["selector"][$selectorCnt]["value"] = $selector->value;
+                            $selectorCnt++;
+                        }
+                    }
+
+                    // Add bodies
+                    $bodies = AnnotationBody::where([
+                        ["annotation_id", "=", $annotation->id]
+                    ])->get();
+                    $annotObj["items"][$annotationCnt]["body"] = array();
+
+                    if ($bodies) {
+                        $bodyCnt = 0;
+                        foreach ($bodies as $body) {
+                            $annotObj["items"][$annotationCnt]["body"][$bodyCnt] = array();
+                            $annotObj["items"][$annotationCnt]["body"][$bodyCnt]["purpose"] = $body->purpose;
+                            $annotObj["items"][$annotationCnt]["body"][$bodyCnt]["type"] = $body->type;
+                            $annotObj["items"][$annotationCnt]["body"][$bodyCnt]["value"] = $body->value;
+                            $bodyCnt++;
+                        }
+                    }
+
+                    // Add Categories
+                    $categories = explode($this->CATEGORY_SPLITER, $annotation->categories);
+                    if ($categories) {
+                        $categoryCnt = 0;
+                        foreach ($categories as $category) {
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt] = array();
+                            $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["value"] = $category;
                             $annotObj["items"][$annotationCnt]["category"][$categoryCnt]["checked"] = true;
                             $categoryCnt++;
                         }
@@ -165,11 +275,21 @@ class AnnotationController extends Controller
 
         $categories = $data->category;
         if ($categories) {
-            foreach ($categories as $category) {
-                $annotation->annotationCategories()->create([
-                    "value" => $category->value
-                ]);
+            $categoriesStr = "";
+            $cnt = count($categories);
+            for ($i = 0; $i < $cnt; $i++) {
+                if (!$categories[$i]->checked)
+                    continue;
+
+                if ($i == 0)
+                    $categoriesStr .= $categories[$i]->value;
+                else
+                    $categoriesStr .= ($this->CATEGORY_SPLITER . $categories[$i]->value);
             }
+
+            Annotation::where("id", $annotation->id)->update([
+                "categories" => $categoriesStr
+            ]);
         }
 
         // $source = is_object($target) ? $target->source : $target;

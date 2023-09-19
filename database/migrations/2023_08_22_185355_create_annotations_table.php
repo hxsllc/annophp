@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string("creator_type")->default("person");
             $table->string("motivation")->default("commenting");
             $table->string("type")->default("Annotation");
+            $table->string("categories")->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
