@@ -138,22 +138,34 @@ class AnnotationController extends Controller
                 if ($category["checked"] == false)
                     continue;
 
-                $newAnnots = Annotation::where([
-                    ["annotation_page_id", "=", $annotPage->id],
-                    ["categories", "like", "%" . $category["value"] . "%"]
-                ])->get();
+                if ($category["value"] == "all") {
+                    $newAnnots = Annotation::where([
+                        ["annotation_page_id", "=", $annotPage->id]
+                    ])->get();
 
-                foreach ($newAnnots as $newAnnot) {
-                    $isExist = false;
-                    foreach ($annotations as $annotation) {
-                        if ($annotation->id == $newAnnot->id) {
-                            $isExist = true;
-                            break;
-                        }
-                    }
-
-                    if (!$isExist)
+                    $annotations = array();
+                    foreach ($newAnnots as $newAnnot)
                         array_push($annotations, $newAnnot);
+
+                    break;
+                } else {
+                    $newAnnots = Annotation::where([
+                        ["annotation_page_id", "=", $annotPage->id],
+                        ["categories", "like", "%" . $category["value"] . "%"]
+                    ])->get();
+
+                    foreach ($newAnnots as $newAnnot) {
+                        $isExist = false;
+                        foreach ($annotations as $annotation) {
+                            if ($annotation->id == $newAnnot->id) {
+                                $isExist = true;
+                                break;
+                            }
+                        }
+
+                        if (!$isExist)
+                            array_push($annotations, $newAnnot);
+                    }
                 }
             }
 
@@ -277,13 +289,16 @@ class AnnotationController extends Controller
         if ($categories) {
             $categoriesStr = "";
             $cnt = count($categories);
+            $isFirst = true;
+
             for ($i = 0; $i < $cnt; $i++) {
                 if (!$categories[$i]->checked)
                     continue;
 
-                if ($i == 0)
+                if ($isFirst) {
                     $categoriesStr .= $categories[$i]->value;
-                else
+                    $isFirst = false;
+                } else
                     $categoriesStr .= ($this->CATEGORY_SPLITER . $categories[$i]->value);
             }
 
@@ -349,6 +364,28 @@ class AnnotationController extends Controller
                     ]);
                 }
             }
+        }
+
+        $categories = $data->category;
+        if ($categories) {
+            $categoriesStr = "";
+            $cnt = count($categories);
+            $isFirst = true;
+
+            for ($i = 0; $i < $cnt; $i++) {
+                if (!$categories[$i]->checked)
+                    continue;
+
+                if ($isFirst) {
+                    $categoriesStr .= $categories[$i]->value;
+                    $isFirst = false;
+                } else
+                    $categoriesStr .= ($this->CATEGORY_SPLITER . $categories[$i]->value);
+            }
+
+            Annotation::where("id", $annotation->id)->update([
+                "categories" => $categoriesStr
+            ]);
         }
 
         return response()->json([
