@@ -105,6 +105,7 @@ class AnnotationController extends Controller
                     $annotObj["items"][$annotationCnt]["creator"]["id"] = $annotation->creator_id;
                     $annotObj["items"][$annotationCnt]["creator"]["name"] = $annotation->creator_name;
                     $annotObj["items"][$annotationCnt]["creator"]["type"] = $annotation->creator_type;
+                    $annotObj["items"][$annotationCnt]["creator"]["created_on"] = $annotation->created_at;
 
                     $annotationCnt++;
                 }
@@ -229,6 +230,7 @@ class AnnotationController extends Controller
                     $annotObj["items"][$annotationCnt]["creator"]["id"] = $annotation->creator_id;
                     $annotObj["items"][$annotationCnt]["creator"]["name"] = $annotation->creator_name;
                     $annotObj["items"][$annotationCnt]["creator"]["type"] = $annotation->creator_type;
+                    $annotObj["items"][$annotationCnt]["creator"]["created_on"] = $annotation->created_at;
 
                     $annotationCnt++;
                 }
